@@ -63,7 +63,6 @@ class DecisionTree():
 
 		root = Node(split_attr)
 
-		print("Attribute split: ", split_attr, attributes)
 		for v in attributes[split_attr]:
 			new_branch = Node(v)
 
@@ -109,41 +108,40 @@ class DecisionTree():
 	'''
 	def _information_gain(self, S, attributes, labels):
 		total_error = self.error_function(labels)
-		print(total_error)
 		gain = -1
 		split_attr = None
 
 		for attr in attributes:
 			gain_attr = total_error
-			print("Gain of  {}".format(attr))
 			for v in attributes[attr]:
-				print("error of {}:".format(v) )
 				Sv_labels = [label for i, label in enumerate(labels) if S[i][attr] == v]
-				
-				g = (len(Sv_labels)/len(labels)) * self.error_function(Sv_labels)
-				gain_attr -= (len(Sv_labels)/len(labels)) * self.error_function(Sv_labels)
-				print("Gain of {}: {}".format(v, g))
+				if Sv_labels:
+					g = (len(Sv_labels)/len(labels)) * self.error_function(Sv_labels)
+					gain_attr -= (len(Sv_labels)/len(labels)) * self.error_function(Sv_labels)
 
-			print("total gain of {}: {}".format(attr, gain_attr) )
 			if gain_attr > gain:
 				gain = gain_attr
 				split_attr = attr
 
 		return split_attr
 
-
-	def test(self, S):
-		predicted_labels = []
-		for s in S:
-			predicted_labels.append(self.prediction(s))
-		return predicted_labels
-
 	'''
 		Tests the model on a set of examples
 		params:
 			S: set of examples to test the model on
 	'''
-	def prediction(self, example):
+	def test(self, S):
+		predicted_labels = []
+		for s in S:
+			predicted_labels.append(self._prediction(s))
+		return predicted_labels
+
+	'''
+		Gives a prediction based on the tree given the example.
+		params:
+			example: Example to be given a prediction
+	'''
+	def _prediction(self, example):
 		root = self.root
 		while root.children:
 			attribute = example[root.attribute]
@@ -153,6 +151,7 @@ class DecisionTree():
 				root = root.children.itervalues().next()
 
 		return root.label
+
 	'''
 		Calculates the accuracy given the predicted labels and expected labels
 		params:
@@ -164,7 +163,6 @@ class DecisionTree():
 		for pl, el in zip(predicted_labels, expected_labels):
 			if pl == el:
 				count += 1
-		# print(count)
 		return 1 - count/len(expected_labels)
 '''
 	Calculates the gini index of the labels given
@@ -179,7 +177,6 @@ def gini_index(labels):
 	probabilities = [counter[count]/n for count in counter]
 	for i, prob in enumerate(probabilities):
 		err = prob**2
-		print(names[i], counter[names[i]], err)
 		gi -= err
 	return gi
 
