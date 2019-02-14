@@ -143,12 +143,11 @@ class DecisionTree():
 	'''
 	def _prediction(self, example):
 		root = self.root
+
 		while root.children:
 			attribute = example[root.attribute]
 			if attribute in root.children:
 				root = root.children[attribute]
-			else:
-				root = root.children.itervalues().next()
 
 		return root.label
 
