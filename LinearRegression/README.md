@@ -1,0 +1,1 @@
+In order to use the linear classifier, one uses the LinearRegressor constructor and passes in the learning rate and a weight vector to be used as the initial weights for the linear regressor

@@ -1,0 +1,1 @@
+In order to use the decision trees one must simply run the file models. Unfortunately, I did not make separate classes for each decision tree. I plan on making the decision trees into different classes so that its simpler for the user to build trees.
