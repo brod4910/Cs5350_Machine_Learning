@@ -9,7 +9,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-    # attr_names = ['Cement', 'Slag', 'Fly ash', 'Water', 'SP', 'Coarse Aggr', 'Fine Aggr']
     train_examples, train_labels = prepare_continous_data('./concrete/train.csv')
     test_examples, test_labels = prepare_continous_data('./concrete/test.csv')
 

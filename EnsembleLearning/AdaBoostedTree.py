@@ -1,22 +1,12 @@
 from copy import deepcopy
-import random
 from BaseDecisionTree import BaseDecisionTree, Node
-from utils.prepare_data import _shuffle_with_replacement
+from utils.prepare_data import _shuffle_without_replacement
 
 import numpy as np
 
-class RandomForest(BaseDecisionTree):
-    '''
-        Decision Tree created using ID3 algorithm
-        params:
-            error_function: The function which to choose the 
-                splits of attributes in the data, options: (function)
-            depth: depth in which the tree should take, options: (int)
-
-    '''
-    def __init__(self, error_function, feature_split, num_trees, depth):
+class AdaBoostedTree(BaseDecisionTree):
+    def __init__(self, error_function, num_trees, depth):
         super().__init__(error_function, depth)
-        self.feature_split = feature_split
         self.num_trees = num_trees
         self.hypotheses = []
         self.hypotheses_votes = []
@@ -32,12 +22,16 @@ class RandomForest(BaseDecisionTree):
                 options: (list)
     '''
     def train_dataset(self, examples, attributes, labels):
+        weights = np.ones(len(labels)) / len(labels)
         for n in range(self.num_trees):
-            n_examples, n_labels = _shuffle_with_replacement(examples, labels)
+            n_examples, n_labels = _shuffle_without_replacement(examples, labels)
 
-            root = self._build_tree(n_examples, attributes, n_labels)
+            root = self._build_tree(n_examples, attributes, n_labels, weights)
 
-            vote = self._cast_vote(root, n_examples, n_labels)
+            vote, preds = self._cast_vote(root, n_examples, n_labels)
+
+            weights *= np.exp(-vote * (n_labels.dot(preds)))
+            weights /= weights.sum()
 
             self.hypotheses.append(root)
             self.hypotheses_votes.append(vote)
@@ -62,23 +56,15 @@ class RandomForest(BaseDecisionTree):
 
         return final_hypoth, error
 
-    def _build_tree(self, examples, attributes, labels):
-        self.root = self._ID3(examples, attributes, labels, self.depth)
-        return self.root
+    def _build_tree(self, examples, attributes, labels, weights):
+        root = self._ID3(examples, attributes, labels, self.depth, weights)
+        return root
 
     def _test(self, root, S):
         preds = np.zeros(len(S))
         for i, s in enumerate(S):
             preds[i] = self._prediction(root, s)
         return preds
-
-    def _cast_vote(self, root, examples, labels):
-        preds = self._test(root, examples)
-
-        error = self._test_error(preds, labels)
-        vote = np.log2(1 - error/2*error)
-
-        return vote
 
     def _prediction(self, root, example):
         while root.children:
@@ -88,7 +74,15 @@ class RandomForest(BaseDecisionTree):
 
         return root.label
 
-    def _ID3(self, S, attributes, labels, depth):
+    def _cast_vote(self, root, examples, labels):
+        preds = self._test(root, examples)
+
+        error = self._test_error(preds, labels)
+        vote = np.log2(1 - error/2*error)
+
+        return vote, preds
+
+    def _ID3(self, S, attributes, labels, depth, weights):
         dom_label = self._dominant_label(labels)
 
         if len(set(labels)) == 1 or not attributes or depth == 0:
@@ -96,15 +90,7 @@ class RandomForest(BaseDecisionTree):
             leaf.label = dom_label
             return leaf
 
-        if len(attributes) > 1:
-            G = {}
-            g = random.sample(list(attributes), self.feature_split)
-            for attr in g:
-                G[attr] = attributes[attr]
-            split_attr = self._information_gain(S, G, labels)
-        else:
-            split_attr = self._information_gain(S, attributes, labels)
-
+        split_attr = self._information_gain(S, attributes, labels, weights)
 
         root = Node(split_attr)
 
@@ -113,6 +99,7 @@ class RandomForest(BaseDecisionTree):
 
             Sv = [sv for i, sv in enumerate(S) if S[i][split_attr] == v]
             Sv_labels = [label for i, label in enumerate(labels) if S[i][split_attr] == v]
+            Sv_weights = [weight for i, weight in enumerate(weights) if S[i][split_attr] == v]
 
             if not Sv:
                 new_branch.label = dom_label
@@ -121,7 +108,25 @@ class RandomForest(BaseDecisionTree):
                 copy_attr = deepcopy(attributes)
                 copy_attr.pop(split_attr)
 
-                root.add_child(v, self._ID3(Sv, copy_attr, Sv_labels, depth - 1))
+                root.add_child(v, self._ID3(Sv, copy_attr, Sv_labels, depth - 1, Sv_weights))
 
         return root
-        
+
+    def _information_gain(self, S, attributes, labels, weights):
+        total_error = self.error_function(labels)
+        gain = -1
+        split_attr = None
+        for attr in attributes:
+            gain_attr = total_error
+            for v in attributes[attr]:
+                Sv_labels = [(label, weight) for i, (label, weight) in enumerate(zip(labels, weights)) if S[i][attr] == v]
+                Sv_weights = [label[1] for label in Sv_labels]
+
+                if Sv_labels:
+                    gain_attr -= sum(Sv_weights)/sum(weights) * self.error_function(Sv_labels)
+
+            if gain_attr > gain:
+                gain = gain_attr
+                split_attr = attr
+
+        return split_attr
