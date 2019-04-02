@@ -1,5 +1,5 @@
-from utils import prepare_continous_data
-from utils import shuffle_data
+from utils.utils import prepare_continous_data
+from utils.utils import shuffle_data
 from BasePerceptron import BasePerceptron
 from VotedPerceptron import VotedPerceptron
 from AveragedPerceptron import AveragedPerceptron
