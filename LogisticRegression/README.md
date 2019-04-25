@@ -1,0 +1,2 @@
+# Using the Logistic Regression Classifier
+In order ot use the logistic regression classifer, then you must first create the mode by giving it a learning rate, variance, the d parameter and the mode (mle or map). To train the models then you must call the train_dataset and test_dataset and pass in the exmaples and labels. The examples must be augmented with 1's.

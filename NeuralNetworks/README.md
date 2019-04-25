@@ -1,0 +1,5 @@
+# Using the Pytorch Neural Network
+In order to use the pytorch neural network, you must create an instance of the network giving it the number input features, number output features, hidden nodes, the activation function, and the weight intialization function. In order to train this model you must import the train funciton from the utils and testing is a similar fashion. However, you must use the pytorch constructs in order to create the datasets needed. This can be done by creating an instance of the BankNoteDataset class and passing int the csv data.
+
+# Using the Python Neural Network
+In order to use the python neural network, you must create an instance of the network by giving it the number of input features, the number of hodden nodes, the learning rate, and the d parameter. In order to train and test the model then you must call their repsective functions by passing in the examples and labels. The examples must be augmented with 1's.

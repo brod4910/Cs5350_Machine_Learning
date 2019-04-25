@@ -52,7 +52,7 @@ def run_averaged_perceptron(train_ex, train_labels, test_ex, test_labels, T, lr)
 
 def main():
 	train_ex, train_labels = prepare_continous_data('./bank-note/train.csv')
-	test_ex, test_labels = prepare_continous_data('./bank-note/train.csv')
+	test_ex, test_labels = prepare_continous_data('./bank-note/test.csv')
 	train_labels = np.array([[-1] if l == 0 else [l] for l in train_labels])
 	test_labels = np.array([[-1] if l == 0 else [l] for l in test_labels])
 
